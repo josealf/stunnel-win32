@@ -1,4 +1,4 @@
-# Simple Makefile.w32 for stunnel.exe by Michal Trojnara 1998-2018
+# Simple Makefile.w32 for stunnel.exe by Michal Trojnara 1998-2019
 #
 # Modified by Brian Hatch  (bri@stunnel.org)
 # 20101030 pdelaage:
@@ -19,12 +19,12 @@
 # On Windows host, download:
 # http://gnuwin32.sourceforge.net/downlinks/coreutils.php
 # if you have forgotten this, this makefile will remind you...
- 
+
 # Modify this to point to your actual openssl compile directory
 # (You did already compile openssl, didn't you???)
 #SSLDIR=../../openssl-0.9.8zh
 #SSLDIR=../../openssl-1.0.0t
-#SSLDIR=../../openssl-1.0.2r
+#SSLDIR=../../openssl-1.0.1q
 SSLDIR=../../openssl-1.1.1b
 
 # For 0.9.8 mingw compiled openssl
@@ -32,13 +32,8 @@ SSLDIR=../../openssl-1.1.1b
 #SSLLIBS=-L$(SSLDIR)/out -leay32 -lssl32
 
 # for 1.0.0/1.0.1 mingw (msys2) compiled
-#SSLINC=$(SSLDIR)/include
-#SSLLIBS=-L$(SSLDIR) -lcrypto.dll -lssl.dll
-
-# for 1.1.1 mingw (msys2) compiled
 SSLINC=$(SSLDIR)/include
-SSLLIBS=-L$(SSLDIR) -lcrypto-1_1 -lssl-1_1
-
+SSLLIBS=-L$(SSLDIR) -lcrypto.dll -lssl.dll
 
 # For MSVC compiled openssl
 #SSLINC=$(SSLDIR)/inc32
@@ -104,12 +99,10 @@ CFLAGS=-g -O2 -Wall $(DEFINES) -I$(SSLINC)
 # default options : -J rc -O coff, input rc file, output coff file.
 
 RFLAGS=-v --use-temp-file $(DEFINES)
-# following RFLAGS2 useful if one day use-temp-file does not exist anymore 
+# following RFLAGS2 useful if one day use-temp-file does not exist anymore
 RFLAGS2=-v $(DEFINES)
 LDFLAGS=-s
 
-#LIBS=$(SSLLIBS) -lws2_32 -lpsapi -lgdi32 -lcrypt32 -lkernel32
-#TLIBS=$(SSLLIBS) -lws2_32 -lpsapi -lcrypt32 -lkernel32
 LIBS=$(SSLLIBS) -lws2_32 -lpsapi -lgdi32 -lcrypt32 -lkernel32
 TLIBS=$(SSLLIBS) -lws2_32 -lpsapi -lcrypt32 -lkernel32
 # IMPORTANT pdelaage : restore this if you need (but I do not see why) -lzdll
@@ -125,7 +118,7 @@ $(OBJ)/%.o: $(SRC)/%.rc
 
 # pdelaage : trick for windres preprocessing popen bug on Windows, in case the windres option
 # use_temp_file disappear one day...
-# comment out the $(RC) rule above to activate the following 
+# comment out the $(RC) rule above to activate the following
 
 $(OBJ)/%.rcp: $(SRC)/%.rc
 	$(RCP) $(DEFINES) -o$@ $<
@@ -133,7 +126,7 @@ $(OBJ)/%.rcp: $(SRC)/%.rc
 $(OBJ)/%.o: $(OBJ)/%.rcp
 	$(RC) $(RFLAGS2) -o$@ $<
 
-# Note : gnu-make will automatically RM the intermediate "rcp" file 
+# Note : gnu-make will automatically RM the intermediate "rcp" file
 # BUT it will ABSOLUTELY NEED the "rm" command available : not a problem on linux
 # but on a windows dev host machine, one will need to install gnu-win32/rm command
 # in the system...
@@ -160,7 +153,7 @@ testenv:
 	@true >$(NULLDEV) 2>&1
 endif
 	
-clean: 
+clean:
 	-@ $(DELFILES) $(OBJ)/*.o
 	-@ $(DELFILES) $(BIN)/stunnel.exe >$(NULLDEV) 2>&1
 	-@ $(DELDIR) $(OBJ) >$(NULLDEV) 2>&1
@@ -172,10 +165,10 @@ makedirs:
 	-@ $(MKDIR) $(BINROOT) >$(NULLDEV) 2>&1
 	-@ $(MKDIR) $(BIN) >$(NULLDEV) 2>&1
 
-# pseudo-target for RC-preprocessor debugging  
+# pseudo-target for RC-preprocessor debugging
 # result appears OK, as a text file
 faketest:
-	gcc -E -xc-header -DRC_INVOKED $(DEFINES) -o $(SRC)/resources.rcp $(SRC)/resources.rc  
+	gcc -E -xc-header -DRC_INVOKED $(DEFINES) -o $(SRC)/resources.rcp $(SRC)/resources.rc
 
 $(OBJS): *.h mingw.mak
 

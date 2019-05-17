@@ -3,7 +3,8 @@
 !define /ifndef VERSION testing
 !define /ifndef ARCH win32
 
-!define STUNNEL_VERSION "5.50"
+!define STUNNEL_VERSION "5.54"
+#!define OPENSSL_VERSION "1.0.2r"
 !define OPENSSL_VERSION "1.1.1b"
 
 !define REGKEY_INSTALL "Software\NSIS_stunnel"
@@ -350,6 +351,8 @@ Section "Core Files" sectionCORE
   !if ${ARCH} == win32
   File "${OPENSSL_BIN_DIR}\libcrypto*.dll"
   File "${OPENSSL_BIN_DIR}\libssl*.dll"
+  ;File "${OPENSSL_BIN_DIR}\libeay*.dll"
+  ;File "${OPENSSL_BIN_DIR}\sslea*.dll"
   ;File "${REDIST_DIR}\msvcr90.dll"
   ;File "${REDIST_DIR}\Microsoft.VC90.CRT.Manifest"
   !else
