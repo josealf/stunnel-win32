@@ -3,9 +3,9 @@
 !define /ifndef VERSION testing
 !define /ifndef ARCH win32
 
-!define STUNNEL_VERSION "5.54"
-#!define OPENSSL_VERSION "1.0.2r"
-!define OPENSSL_VERSION "1.1.1b"
+!define STUNNEL_VERSION "5.55"
+#!define OPENSSL_VERSION "1.0.2s"
+!define OPENSSL_VERSION "1.1.1c"
 
 !define REGKEY_INSTALL "Software\NSIS_stunnel"
 !define REGKEY_UNINST \
@@ -15,7 +15,7 @@
 SetCompressor /SOLID LZMA
 Name "stunnel ${VERSION}"
 OutFile "stunnel-${VERSION}-${ARCH}-${STUNNEL_VERSION}-ossl-${OPENSSL_VERSION}-installer.exe"
-BrandingText "Author: Michal Trojnara"
+BrandingText "Author: Michal Trojnara\n,This build done by J.A. Diaz"
 
 # MultiUser
 !define MULTIUSER_EXECUTIONLEVEL Highest
