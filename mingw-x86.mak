@@ -1,195 +1,613 @@
-# Simple Makefile.w32 for stunnel.exe by Michal Trojnara 1998-2018
-#
-# Modified by Brian Hatch  (bri@stunnel.org)
-# 20101030 pdelaage:
-# + multi-HOST management (if used on Windows host or Linux Host)
-# + lack of gnu-win32 (rm) detection
-# note: rm is used INTERNALLY by gcc for deletion if intermediate files.
+# NSIS stunnel installer by Michal Trojnara 1998-2018
 
-# This makefile is only tested on the mingw compiler.  Mingw can successfully
-# compile both openssl and stunnel.  If you want to use another compiler, give
-# it a shot, and tell us how it went.
+!define /ifndef VERSION testing
+!define /ifndef ARCH win32
 
-# pdelaage : THIS makefile can be used with mingw-make on Windows or gnu make
-# on Linux, to produce the Win32 version of stunnel (target is win32).  It
-# requires, on Windows, the use of gnu-win32 tools: rm, mkdir, rmdir that
-# manages files and dirs BOTH on linux and Windows with / as path separator.
-# Note: Native windows equivalent, del and mkdir/rmdir, badly manage / and \,
-# so they cannot be used here.
-# On Windows host, download:
-# http://gnuwin32.sourceforge.net/downlinks/coreutils.php
-# if you have forgotten this, this makefile will remind you...
- 
-# Modify this to point to your actual openssl compile directory
-# (You did already compile openssl, didn't you???)
-#SSLDIR=../../openssl-0.9.8zh
-#SSLDIR=../../openssl-1.0.0t
-#SSLDIR=../../openssl-1.0.2r
-SSLDIR=../../openssl-1.1.1b
+!define STUNNEL_VERSION "5.55"
+#!define OPENSSL_VERSION "1.0.2s"
+!define OPENSSL_VERSION "1.1.1d"
 
-# For 0.9.8 mingw compiled openssl
-#SSLINC=$(SSLDIR)/outinc
-#SSLLIBS=-L$(SSLDIR)/out -leay32 -lssl32
+!define REGKEY_INSTALL "Software\NSIS_stunnel"
+!define REGKEY_UNINST \
+  "Software\Microsoft\Windows\CurrentVersion\Uninstall\stunnel"
+!define SHORTCUTS "stunnel $MultiUser.InstallMode"
 
-# for 1.0.0/1.0.1 mingw (msys2) compiled
-#SSLINC=$(SSLDIR)/include
-#SSLLIBS=-L$(SSLDIR) -lcrypto.dll -lssl.dll
+SetCompressor /SOLID LZMA
+Name "stunnel ${VERSION}"
+OutFile "stunnel-${VERSION}-${ARCH}-${STUNNEL_VERSION}-ossl-${OPENSSL_VERSION}-installer.exe"
+BrandingText "Author: Michal Trojnara\n,This build done by J.A. Diaz"
 
-# for 1.1.1 mingw (msys2) compiled
-SSLINC=$(SSLDIR)/include
-SSLLIBS=-L$(SSLDIR) -lcrypto-1_1 -lssl-1_1
+# MultiUser
+!define MULTIUSER_EXECUTIONLEVEL Highest
+!define MULTIUSER_MUI
+!define MULTIUSER_INSTALLMODE_COMMANDLINE
+!define MULTIUSER_INSTALLMODE_INSTDIR "stunnel"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_KEY "${REGKEY_INSTALL}"
+!define MULTIUSER_INSTALLMODE_INSTDIR_REGISTRY_VALUENAME "Install_Dir"
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_KEY "${REGKEY_INSTALL}"
+!define MULTIUSER_INSTALLMODE_DEFAULT_REGISTRY_VALUENAME "Install_Mode"
+!include MultiUser.nsh
+# Modern UI
+!define MUI_FINISHPAGE_RUN "$INSTDIR\bin\stunnel.exe"
+!define MUI_FINISHPAGE_RUN_TEXT "Start stunnel after installation"
+!define MUI_FINISHPAGE_RUN_NOTCHECKED
+!include "MUI2.nsh"
+# define SF_SELECTED
+!include "Sections.nsh"
 
+!define /ifndef ROOT_DIR \devel
 
-# For MSVC compiled openssl
-#SSLINC=$(SSLDIR)/inc32
-#SSLLIBS=-L$(SSLDIR)/out32dll -lssleay32 -llibeay32
+!define /ifndef STUNNEL_DIR ${ROOT_DIR}\stunnel-${STUNNEL_VERSION}
+!define /ifndef STUNNEL_TOOLS_DIR ${STUNNEL_DIR}\tools
+!define /ifndef STUNNEL_SRC_DIR ${STUNNEL_DIR}\src
 
-# c:\, backslash is not correctly recognized by mingw32-make, produces some
-# "missing separator" issue.
-# pdelaage: simple trick to detect if we are using mingw-gcc on a Windows host,
-# or on a linux host.  windir is a system environment variable on windows NT
-# and above, and then redefine some macros.
-# note: ifdef is !IFDEF in MS nmake or Borland make.
-#       $(info is !MESSAGE in MS nmake or Borland make.
+!define /ifndef DEST_DIR ${STUNNEL_DIR}
+!define /ifndef STUNNEL_BIN_DIR ${DEST_DIR}\bin\${ARCH}
+!define /ifndef STUNNEL_DOC_DIR ${DEST_DIR}\doc
 
-ifdef windir
-$(info host machine is a Windows machine )
-NULLDEV=NUL
-MKDIR="C:\Program Files\GnuWin32\bin\mkdir.exe"
-DELFILES="C:\Program Files\GnuWin32\bin\rm.exe" -f
-DELDIR="C:\Program Files\GnuWin32\bin\rm.exe" -rf
-COPYFILES="C:\Program Files\GnuWin32\bin\cp.exe" -f
-else
-$(info host machine is a linux machine )
-NULLDEV=/dev/null
-MKDIR=mkdir
-DELFILES=rm -f
-DELDIR=rm -rf
-COPYFILES=cp -f
-endif
+!define /ifndef BIN_DIR ${ROOT_DIR}\${ARCH}
+!define /ifndef OPENSSL_DIR ${ROOT_DIR}\openssl-${OPENSSL_VERSION}
+!define /ifndef OPENSSL_BIN_DIR ${OPENSSL_DIR}\apps
+!if ${ARCH} == win32
+!define /ifndef OPENSSL_ENGINES_DIR ${OPENSSL_DIR}\engines
+!else
+!define /ifndef OPENSSL_ENGINES_DIR ${OPENSSL_DIR}\lib\engines-1_1
+!endif
+!define /ifndef ZLIB_DIR ${BIN_DIR}\zlib
+!define /ifndef REDIST_DIR ${BIN_DIR}\redist
 
-TARGETCPU=win32
-SRC=../src
-OBJROOT=../obj
-OBJ=$(OBJROOT)/$(TARGETCPU)
-BINROOT=../bin
-BIN=$(BINROOT)/$(TARGETCPU)
+# additional plugins
+!addplugindir "${STUNNEL_TOOLS_DIR}/plugins/SimpleFC"
+!addplugindir "${STUNNEL_TOOLS_DIR}/plugins/ShellLink/Plugins"
 
-OBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
-	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
-	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
-	$(OBJ)/ui_win_gui.o $(OBJ)/resources.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o
+!define MUI_ICON ${STUNNEL_SRC_DIR}\stunnel.ico
 
-TOBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
-	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
-	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
-	$(OBJ)/ui_win_cli.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o
+!insertmacro MUI_PAGE_LICENSE "${STUNNEL_TOOLS_DIR}/stunnel.license"
+!insertmacro MULTIUSER_PAGE_INSTALLMODE
+!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
 
-CC=gcc
-RC=windres
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
 
-# pdelaage note: as a workaround for windres bug on resources.rc, equivalent to
-# "use a temp file instead of popen" option between cpp and windres!
-RCP=gcc -E -xc-header -DRC_INVOKED
+!insertmacro MUI_LANGUAGE "English"
 
-DEFINES=-D_WIN32_WINNT=0x0501
+!macro MoveFiles src dst pattern
+FindFirst $0 $1 "${src}\${pattern}"
+  !define MoveFilesId ${__LINE__}
+loop_${MoveFilesId}:
+  StrCmp $1 "" done_${MoveFilesId}
+  Rename "${src}\$1" "${dst}\$1"
+  FindNext $0 $1
+  Goto loop_${MoveFilesId}
+done_${MoveFilesId}:
+  FindClose $0
+  !undef MoveFilesId
+!macroend
 
-# some preprocessing debug : $(info  DEFINES is $(DEFINES) )
+!macro DetailError message
+  # pop the error and log the failure
+  !define DetailErrorId ${__LINE__}
+  Pop $0 # returns error(-1)/success(0)
+  IntCmp $0 0 done_${DetailErrorId}
+  DetailPrint "${message}"
+done_${DetailErrorId}:
+  !undef DetailErrorId
+!macroend
 
-CFLAGS=-g -O2 -Wall $(DEFINES) -I$(SSLINC)
+!macro SetRunAsAdmin path
+  # run the link as administrator if InstallMode is AllUsers
+  !define SetRunAsAdminId ${__LINE__}
+  StrCmp $MultiUser.InstallMode "CurrentUser" done_${SetRunAsAdminId}
+  ShellLink::SetRunAsAdministrator "$SMPROGRAMS\${SHORTCUTS}\${path}.lnk"
+  !insertmacro DetailError "ShellLink::SetRunAsAdministrator failed for ${path}"
+done_${SetRunAsAdminId}:
+  !undef SetRunAsAdminId
+!macroend
 
-# RFLAGS, note of pdelaage: windres accepts -fo for compatibility with ms tools
-# default options : -J rc -O coff, input rc file, output coff file.
+Var /GLOBAL gui_restart
+Var /GLOBAL service_restart
+Var /GLOBAL service_reinstall
+Var /GLOBAL exe
 
-RFLAGS=-v --use-temp-file $(DEFINES)
-# following RFLAGS2 useful if one day use-temp-file does not exist anymore 
-RFLAGS2=-v $(DEFINES)
-LDFLAGS=-s
+!macro TerminateStunnel
+  # initialize with nonzero values: do not restart/reinstall
+  StrCpy $service_restart 1
+  StrCpy $service_reinstall 1
+  # find the old stunnel executable
+  StrCpy $exe "$INSTDIR\bin\stunnel.exe"
+  IfFileExists "$exe" found
+  StrCpy $exe "$INSTDIR\stunnel.exe"
+  IfFileExists "$exe" found done
+found:
+  # exit the stunnel GUI
+  ExecWait '"$exe" -exit -quiet' $gui_restart
+  # stop and uninstall the stunnel service
+  # setup $service_restart and $service_reinstall
+  StrCmp $MultiUser.InstallMode "CurrentUser" done
+  ClearErrors
+  ReadRegStr $R0 HKLM \
+    "Software\Microsoft\Windows NT\CurrentVersion" CurrentVersion
+  IfErrors done
+  ExecWait '"$exe" -stop -quiet' $service_restart
+  IntCmp $service_restart 0 0 not_stopped not_stopped
+  DetailPrint "Service stopped"
+not_stopped:
+  StrCmp "$exe" "$INSTDIR\bin\stunnel.exe" done # no need to uninstall
+  ExecWait '"$exe" -uninstall -quiet' $service_reinstall
+  IntCmp $service_reinstall 0 0 done done
+  DetailPrint "Service uninstalled"
+done:
+!macroend
 
-#LIBS=$(SSLLIBS) -lws2_32 -lpsapi -lgdi32 -lcrypt32 -lkernel32
-#TLIBS=$(SSLLIBS) -lws2_32 -lpsapi -lcrypt32 -lkernel32
-LIBS=$(SSLLIBS) -lws2_32 -lpsapi -lgdi32 -lcrypt32 -lkernel32
-TLIBS=$(SSLLIBS) -lws2_32 -lpsapi -lcrypt32 -lkernel32
-# IMPORTANT pdelaage : restore this if you need (but I do not see why) -lzdll
+!macro RestartStunnel
+  # install the service if $service_reinstall is 0
+  IntCmp $service_reinstall 0 0 no_service_reinstall no_service_reinstall
+  ExecWait '"$INSTDIR\bin\stunnel.exe" -install -quiet' $service_reinstall
+  IntCmp $service_reinstall 0 0 no_service_reinstall no_service_reinstall
+  DetailPrint "Service installed"
+no_service_reinstall:
+  # start the service if $service_restart is 0
+  IntCmp $service_restart 0 0 no_service_restart no_service_restart
+  ExecWait '"$INSTDIR\bin\stunnel.exe" -start -quiet' $service_restart
+  IntCmp $service_restart 0 0 no_service_restart no_service_restart
+  DetailPrint "Service started"
+no_service_restart:
+  # start the gui if $gui_restart is 0
+  # it does not work against stunnel older than 5.23 due to a bug
+  #   IntCmp $gui_restart 0 0 no_gui_restart no_gui_restart
+  #   Exec '"$INSTDIR\bin\stunnel.exe"'
+  # no_gui_restart:
+!macroend
 
-$(OBJ)/%.o: $(SRC)/%.c
-	$(CC) $(CFLAGS) -o$@ -c $<
+!macro CleanupStunnelFiles
+  # current versions
+  Delete "$INSTDIR\config\openssl.cnf"
 
-$(OBJ)/%.o: $(SRC)/%.cpp
-	$(CC) $(CFLAGS) -o$@ -c $<
-	
-$(OBJ)/%.o: $(SRC)/%.rc
-	$(RC) $(RFLAGS) -o$@ $<
+  Delete "$INSTDIR\bin\stunnel.exe"
+  Delete "$INSTDIR\bin\stunnel.pdb"
+  Delete "$INSTDIR\bin\tstunnel.exe"
+  Delete "$INSTDIR\bin\tstunnel.pdb"
+  Delete "$INSTDIR\bin\openssl.exe"
+  Delete "$INSTDIR\bin\openssl.pdb"
+  Delete "$INSTDIR\bin\libeay32.dll"
+  Delete "$INSTDIR\bin\libeay32.pdb"
+  Delete "$INSTDIR\bin\ssleay32.dll"
+  Delete "$INSTDIR\bin\ssleay32.pdb"
+  Delete "$INSTDIR\bin\zlib1.dll"
+  Delete "$INSTDIR\bin\zlib1.pdb"
+  Delete "$INSTDIR\bin\msvcr90.dll"
+  Delete "$INSTDIR\bin\Microsoft.VC90.CRT.Manifest"
+  Delete "$INSTDIR\bin\libcrypto-1_1-x64.dll"
+  Delete "$INSTDIR\bin\libcrypto-1_1-x64.pdb"
+  Delete "$INSTDIR\bin\libssl-1_1-x64.dll"
+  Delete "$INSTDIR\bin\libssl-1_1-x64.pdb"
+  Delete "$INSTDIR\bin\vcruntime140.dll"
+  RMDir "$INSTDIR\bin"
 
-# pdelaage : trick for windres preprocessing popen bug on Windows, in case the windres option
-# use_temp_file disappear one day...
-# comment out the $(RC) rule above to activate the following 
+  Delete "$INSTDIR\engines\4758cca.dll"
+  Delete "$INSTDIR\engines\4758cca.pdb"
+  Delete "$INSTDIR\engines\aep.dll"
+  Delete "$INSTDIR\engines\aep.pdb"
+  Delete "$INSTDIR\engines\atalla.dll"
+  Delete "$INSTDIR\engines\atalla.pdb"
+  Delete "$INSTDIR\engines\capi.dll"
+  Delete "$INSTDIR\engines\capi.pdb"
+  Delete "$INSTDIR\engines\chil.dll"
+  Delete "$INSTDIR\engines\chil.pdb"
+  Delete "$INSTDIR\engines\cswift.dll"
+  Delete "$INSTDIR\engines\cswift.pdb"
+  Delete "$INSTDIR\engines\gmp.dll"
+  Delete "$INSTDIR\engines\gmp.pdb"
+  Delete "$INSTDIR\engines\gost.dll"
+  Delete "$INSTDIR\engines\gost.pdb"
+  Delete "$INSTDIR\engines\nuron.dll"
+  Delete "$INSTDIR\engines\nuron.pdb"
+  Delete "$INSTDIR\engines\padlock.dll"
+  Delete "$INSTDIR\engines\padlock.pdb"
+  Delete "$INSTDIR\engines\sureware.dll"
+  Delete "$INSTDIR\engines\sureware.pdb"
+  Delete "$INSTDIR\engines\ubsec.dll"
+  Delete "$INSTDIR\engines\ubsec.pdb"
+  Delete "$INSTDIR\engines\pkcs11.dll"
+  Delete "$INSTDIR\engines\pkcs11.pdb"
+  
+  Delete "$INSTDIR\engines\4758ccaeay32.dll"
+  Delete "$INSTDIR\engines\aepeay32.dll"
+  Delete "$INSTDIR\engines\atallaeay32.dll"
+  Delete "$INSTDIR\engines\gmpeay32.dll"
+  Delete "$INSTDIR\engines\cswifteay32.dll"
+  Delete "$INSTDIR\engines\chileay32.dll"
+  Delete "$INSTDIR\engines\nuroneay32.dll"
+  Delete "$INSTDIR\engines\ubseceay32.dll"
+  Delete "$INSTDIR\engines\surewareeay32.dll"
+  Delete "$INSTDIR\engines\padlockeay32.dll"
+  Delete "$INSTDIR\engines\capieay32.dll"
+  Delete "$INSTDIR\engines\capi.dll"
+  Delete "$INSTDIR\engines\dasync.dll"
+  Delete "$INSTDIR\engines\ossltest.dll"
+  Delete "$INSTDIR\engines\padlock.dll"
 
-$(OBJ)/%.rcp: $(SRC)/%.rc
-	$(RCP) $(DEFINES) -o$@ $<
-	
-$(OBJ)/%.o: $(OBJ)/%.rcp
-	$(RC) $(RFLAGS2) -o$@ $<
+  RMDir "$INSTDIR\engines"
 
-# Note : gnu-make will automatically RM the intermediate "rcp" file 
-# BUT it will ABSOLUTELY NEED the "rm" command available : not a problem on linux
-# but on a windows dev host machine, one will need to install gnu-win32/rm command
-# in the system...
-# for debug of the preprocessed rcp file, because it is automatically deleted by gnu-make:	cp $< $<.2
+  Delete "$INSTDIR\doc\*.html"
+  RMDir "$INSTDIR\doc"
 
-all: testenv makedirs $(BIN)/stunnel.exe $(BIN)/tstunnel.exe
+  # menu and desktop shortcuts
+  Delete "$SMPROGRAMS\${SHORTCUTS}\*.lnk"
+  Delete "$SMPROGRAMS\${SHORTCUTS}\*.url"
+  RMDir "$SMPROGRAMS\${SHORTCUTS}"
+  Delete "$DESKTOP\${SHORTCUTS}.lnk"
 
-testopenssl:
-	@if not exist $(SSLDIR) echo You mush have a compiled OpenSSL tree
-	@if not exist $(SSLINC)/openssl/applink.c $(COPYFILES) $(SSLDIR)/ms/applink.c $(SSLINC)/openssl
+  # obsolete versions
+  Delete "$INSTDIR\stunnel.exe"
+  Delete "$INSTDIR\stunnel.pdb"
+  Delete "$INSTDIR\tstunnel.exe"
+  Delete "$INSTDIR\tstunnel.pdb"
+  Delete "$INSTDIR\openssl.exe"
+  Delete "$INSTDIR\openssl.pdb"
+  Delete "$INSTDIR\libeay32.dll"
+  Delete "$INSTDIR\libeay32.pdb"
+  Delete "$INSTDIR\ssleay32.dll"
+  Delete "$INSTDIR\ssleay32.pdb"
+  Delete "$INSTDIR\zlib1.dll"
+  Delete "$INSTDIR\zlib1.pdb"
+  Delete "$INSTDIR\msvcr90.dll"
 
-#pdelaage : testenv purpose is to detect, on windows, whether Gnu-win32 has been properly installed...
-# a first call to "true" is made to detect availability, a second is made to stop the make process.
-ifdef windir
-testenv: testopenssl
-	-@ echo OFF
-	-@ true >$(NULLDEV) 2>&1 || echo You MUST install Gnu-Win32 coreutils \
-	from http://gnuwin32.sourceforge.net/downlinks/coreutils.php \
-	and set PATH to include C:\Program Files\GnuWin32\bin
-	@true >$(NULLDEV) 2>&1
-else
-testenv:
-	-@ true >$(NULLDEV) 2>&1 || echo Your system lacks Gnu coreutils tools !!!
-	@true >$(NULLDEV) 2>&1
-endif
-	
-clean: 
-	-@ $(DELFILES) $(OBJ)/*.o
-	-@ $(DELFILES) $(BIN)/stunnel.exe >$(NULLDEV) 2>&1
-	-@ $(DELDIR) $(OBJ) >$(NULLDEV) 2>&1
-	-@ $(DELDIR) $(BIN) >$(NULLDEV) 2>&1
+  Delete "$INSTDIR\openssl.cnf"
+  Delete "$INSTDIR\stunnel.html"
 
-makedirs:
-	-@ $(MKDIR) $(OBJROOT) >$(NULLDEV) 2>&1
-	-@ $(MKDIR) $(OBJ) >$(NULLDEV) 2>&1
-	-@ $(MKDIR) $(BINROOT) >$(NULLDEV) 2>&1
-	-@ $(MKDIR) $(BIN) >$(NULLDEV) 2>&1
+  Delete "$INSTDIR\stunnel.cnf"
+  Delete "$INSTDIR\stunnel.exe.manifest"
+  Delete "$INSTDIR\tstunnel.exe.manifest"
+  Delete "$INSTDIR\openssl.exe.manifest"
+  Delete "$INSTDIR\libeay32.dll.manifest"
+  Delete "$INSTDIR\ssleay32.dll.manifest"
+  Delete "$INSTDIR\zlib1.dll.manifest"
+  Delete "$INSTDIR\Microsoft.VC90.CRT.Manifest"
 
-# pseudo-target for RC-preprocessor debugging  
-# result appears OK, as a text file
-faketest:
-	gcc -E -xc-header -DRC_INVOKED $(DEFINES) -o $(SRC)/resources.rcp $(SRC)/resources.rc  
+  Delete "$INSTDIR\4758cca.dll"
+  Delete "$INSTDIR\4758cca.dll.manifest"
+  Delete "$INSTDIR\4758cca.pdb"
+  Delete "$INSTDIR\aep.dll"
+  Delete "$INSTDIR\aep.dll.manifest"
+  Delete "$INSTDIR\aep.pdb"
+  Delete "$INSTDIR\atalla.dll"
+  Delete "$INSTDIR\atalla.dll.manifest"
+  Delete "$INSTDIR\atalla.pdb"
+  Delete "$INSTDIR\capi.dll"
+  Delete "$INSTDIR\capi.dll.manifest"
+  Delete "$INSTDIR\capi.pdb"
+  Delete "$INSTDIR\chil.dll"
+  Delete "$INSTDIR\chil.dll.manifest"
+  Delete "$INSTDIR\chil.pdb"
+  Delete "$INSTDIR\cswift.dll"
+  Delete "$INSTDIR\cswift.dll.manifest"
+  Delete "$INSTDIR\cswift.pdb"
+  Delete "$INSTDIR\gmp.dll"
+  Delete "$INSTDIR\gmp.dll.manifest"
+  Delete "$INSTDIR\gmp.pdb"
+  Delete "$INSTDIR\gost.dll"
+  Delete "$INSTDIR\gost.dll.manifest"
+  Delete "$INSTDIR\gost.pdb"
+  Delete "$INSTDIR\nuron.dll"
+  Delete "$INSTDIR\nuron.dll.manifest"
+  Delete "$INSTDIR\nuron.pdb"
+  Delete "$INSTDIR\padlock.dll"
+  Delete "$INSTDIR\padlock.dll.manifest"
+  Delete "$INSTDIR\padlock.pdb"
+  Delete "$INSTDIR\sureware.dll"
+  Delete "$INSTDIR\sureware.dll.manifest"
+  Delete "$INSTDIR\sureware.pdb"
+  Delete "$INSTDIR\ubsec.dll"
+  Delete "$INSTDIR\ubsec.dll.manifest"
+  Delete "$INSTDIR\ubsec.pdb"
 
-$(OBJS): *.h mingw.mak
+  # obsolete menu and desktop shortcuts
+  Delete "$SMPROGRAMS\stunnel\*.lnk"
+  Delete "$SMPROGRAMS\stunnel\*.url"
+  RMDir "$SMPROGRAMS\stunnel"
+  Delete "$DESKTOP\stunnel.lnk"
 
-$(BIN)/stunnel.exe: $(OBJS)
-	$(CC) $(LDFLAGS) -o $(BIN)/stunnel.exe $(OBJS) $(LIBS) -mwindows
+  # refresh the screen
+  System::Call 'Shell32::SHChangeNotify(i 0x8000000, i 0, i 0, i 0)'
+!macroend
 
-$(BIN)/tstunnel.exe: $(TOBJS)
-	$(CC) $(LDFLAGS) -o $(BIN)/tstunnel.exe $(TOBJS) $(TLIBS)
+Function .onInit
+  !insertmacro MULTIUSER_INIT
+FunctionEnd
 
-# "missing separator" issue with mingw32-make: tabs MUST BE TABS in your text
-# editor, and not set of spaces even if your development host is windows.
-# Some \ are badly tolerated by mingw32-make "!" directives, eg as !IF,
-# accepted in MS nmake and Borland make ARE NOT supported by gnu make but they
-# all have their equivalents.
-# Gnu-make is case sensitive, while ms nmake or borland make are not. Anyway,
-# on reference to env vars nmake convert env vars to UPPERCASE macro names...
+Function un.onInit
+  !insertmacro MULTIUSER_UNINIT
+FunctionEnd
 
+Section "Core Files" sectionCORE
+  SectionIn RO
+
+  # save the installer configuration
+  WriteRegStr SHCTX "${REGKEY_INSTALL}" "Install_Dir" "$INSTDIR"
+  WriteRegStr SHCTX "${REGKEY_INSTALL}" "Install_Mode" "$MultiUser.InstallMode"
+
+  !insertmacro TerminateStunnel
+  !insertmacro CleanupStunnelFiles
+
+  # update the configuration (migrate the old one if available)
+  SetOutPath "$INSTDIR\config" # this also creates the directory
+  !insertmacro MoveFiles "$INSTDIR" "$INSTDIR\config" "*.conf"
+  !insertmacro MoveFiles "$INSTDIR" "$INSTDIR\config" "*.pem"
+  !insertmacro MoveFiles "$INSTDIR" "$INSTDIR\config" "*.crt"
+  !insertmacro MoveFiles "$INSTDIR" "$INSTDIR\config" "*.key"
+  SetOverwrite off
+  File "${STUNNEL_TOOLS_DIR}\stunnel.conf"
+  SetOverwrite on
+  File "${STUNNEL_TOOLS_DIR}\ca-certs.pem"
+
+  # write new executables/libraries files
+  # we assume Visual C++ 2008 for win32, and MinGW for win64
+  SetOutPath "$INSTDIR\bin"
+  File "${STUNNEL_BIN_DIR}\stunnel.exe"
+  !if ${ARCH} == win32
+  File "${OPENSSL_BIN_DIR}\libcrypto*.dll"
+  File "${OPENSSL_BIN_DIR}\libssl*.dll"
+  ;File "${OPENSSL_BIN_DIR}\libeay*.dll"
+  ;File "${OPENSSL_BIN_DIR}\sslea*.dll"
+  ;File "${REDIST_DIR}\msvcr90.dll"
+  ;File "${REDIST_DIR}\Microsoft.VC90.CRT.Manifest"
+  !else
+  File "${OPENSSL_BIN_DIR}\libcrypto-1_1-x64.dll"
+  File "${OPENSSL_BIN_DIR}\libssl-1_1-x64.dll"
+  # TODO: add libssp-0.dll when -fstack-protector is fixed
+  #SetOutPath "$INSTDIR"
+  #ReadRegStr $0 HKLM "SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64" "Installed"
+  #${If} $0 == 1
+  #  DetailPrint "VC 2017 Redistributable already installed"
+  #${Else}
+  #  DetailPrint "Installing VC 2017 Redistributable"
+  #  File "${REDIST_DIR}\VC_redist.x64.exe"
+  #  ExecWait '"$INSTDIR\VC_redist.x64.exe" /quiet'
+  #  Delete "$INSTDIR\VC_redist.x64.exe"
+  #${EndIf}
+  !endif
+
+  # write new engine libraries
+  SetOutPath "$INSTDIR\engines"
+  File /r "${OPENSSL_ENGINES_DIR}\*.dll"
+  ;File "${OPENSSL_ENGINES_DIR}\padlock.dll"
+  ;File "${OPENSSL_ENGINES_DIR}\pkcs11.dll"
+
+  # write new documentation
+  SetOutPath "$INSTDIR\doc"
+  File "${STUNNEL_DOC_DIR}\stunnel.html"
+
+  # add firewall rule
+  SimpleFC::AddApplication "stunnel (GUI Version)" \
+    "$INSTDIR\bin\stunnel.exe" 0 2 "" 1
+  !insertmacro DetailError "SimpleFC::AddApplication failed for stunnel.exe"
+
+  # write uninstaller and its registry entries
+  WriteUninstaller "uninstall.exe"
+  WriteRegStr SHCTX "${REGKEY_UNINST}" "DisplayName" \
+    "stunnel installed for $MultiUser.InstallMode"
+  WriteRegStr SHCTX "${REGKEY_UNINST}" "DisplayVersion" "${VERSION}"
+  WriteRegStr SHCTX "${REGKEY_UNINST}" "DisplayIcon" "$INSTDIR\bin\stunnel.exe"
+  WriteRegStr SHCTX "${REGKEY_UNINST}" "Publisher" "Michal Trojnara"
+  WriteRegStr SHCTX "${REGKEY_UNINST}" \
+    "UninstallString" '"$INSTDIR\uninstall.exe" /$MultiUser.InstallMode'
+  WriteRegDWORD SHCTX "${REGKEY_UNINST}" "NoModify" 1
+  WriteRegDWORD SHCTX "${REGKEY_UNINST}" "NoRepair" 1
+SectionEnd
+
+SectionGroup "Tools" groupTOOLS
+
+Section "openssl.exe" sectionOPENSSL
+  SetOutPath "$INSTDIR\bin"
+  File "${OPENSSL_BIN_DIR}\openssl.exe"
+  SetOutPath "$INSTDIR\config"
+  File "${STUNNEL_TOOLS_DIR}\openssl.cnf"
+
+  # create stunnel.pem
+  IfSilent no_new_pem
+  IfFileExists "$INSTDIR\config\stunnel.pem" no_new_pem
+  # set HOME for the .rnd file
+  ReadEnvStr $0 "HOME"
+  StrCmp $0 "" home_defined
+  System::Call 'Kernel32::SetEnvironmentVariable(t, t) i("HOME", "$INSTDIR\config").r0'
+home_defined:
+  ExecWait '"$INSTDIR\bin\openssl.exe" req -new -x509 -days 365 -config "$INSTDIR\config\openssl.cnf" -out "$INSTDIR\config\stunnel.pem" -keyout "$INSTDIR\config\stunnel.pem"'
+no_new_pem:
+SectionEnd
+
+Section "tstunnel.exe" sectionTSTUNNEL
+  SetOutPath "$INSTDIR\bin"
+  File "${STUNNEL_BIN_DIR}\tstunnel.exe"
+  # add firewall rule
+  SimpleFC::AddApplication "stunnel (Terminal Version)" \
+    "$INSTDIR\bin\tstunnel.exe" 0 2 "" 1
+  !insertmacro DetailError "SimpleFC::AddApplication failed for tstunnel.exe"
+SectionEnd
+
+SectionGroupEnd
+
+SectionGroup "Shortcuts" groupSHORTCUTS
+
+Section "Start Menu" sectionMENU
+  CreateDirectory "$SMPROGRAMS\${SHORTCUTS}"
+
+  # the core links
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\stunnel GUI Start.lnk" \
+    "$INSTDIR\bin\stunnel.exe" "" "$INSTDIR\bin\stunnel.exe"
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\stunnel GUI Stop.lnk" \
+    "$INSTDIR\bin\stunnel.exe" "-exit" "$INSTDIR\bin\stunnel.exe"
+
+  # tstunnel
+  SectionGetFlags ${sectionTSTUNNEL} $0
+  IntOp $0 $0 & ${SF_SELECTED}
+  IntCmp $0 0 no_tstunnel_shortcut
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\stunnel Terminal Start.lnk" \
+    "$INSTDIR\bin\tstunnel.exe" "" "$INSTDIR\bin\tstunnel.exe"
+no_tstunnel_shortcut:
+
+  # NT service management
+  ClearErrors
+  ReadRegStr $R0 HKLM \
+    "Software\Microsoft\Windows NT\CurrentVersion" CurrentVersion
+  IfErrors no_service_shortcuts
+  StrCmp $MultiUser.InstallMode "CurrentUser" no_service_shortcuts
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\stunnel Service Install.lnk" \
+    "$INSTDIR\bin\stunnel.exe" "-install" "$INSTDIR\bin\stunnel.exe"
+  !insertmacro SetRunAsAdmin "stunnel Service Install"
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\stunnel Service Uninstall.lnk" \
+    "$INSTDIR\bin\stunnel.exe" "-uninstall" "$INSTDIR\bin\stunnel.exe"
+  !insertmacro SetRunAsAdmin "stunnel Service Uninstall"
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\stunnel Service Start.lnk" \
+    "$INSTDIR\bin\stunnel.exe" "-start" "$INSTDIR\bin\stunnel.exe"
+  !insertmacro SetRunAsAdmin "stunnel Service Start"
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\stunnel Service Stop.lnk" \
+    "$INSTDIR\bin\stunnel.exe" "-stop" "$INSTDIR\bin\stunnel.exe"
+  !insertmacro SetRunAsAdmin "stunnel Service Stop"
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\stunnel Service Configuration File Reload.lnk" \
+    "$INSTDIR\bin\stunnel.exe" "-reload" "$INSTDIR\bin\stunnel.exe"
+  !insertmacro SetRunAsAdmin "stunnel Service Configuration File Reload"
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\stunnel Service Log File Reopen.lnk" \
+    "$INSTDIR\bin\stunnel.exe" "-reopen" "$INSTDIR\bin\stunnel.exe"
+  !insertmacro SetRunAsAdmin "stunnel Service Log File Reopen"
+no_service_shortcuts:
+
+  # edit config file
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\Edit stunnel.conf.lnk" \
+    "notepad.exe" "$INSTDIR\config\stunnel.conf" "notepad.exe"
+  !insertmacro SetRunAsAdmin "Edit stunnel.conf"
+
+  SectionGetFlags ${sectionOPENSSL} $0
+  IntOp $0 $0 & ${SF_SELECTED}
+  IntCmp $0 0 no_openssl_shortcuts
+  # OpenSSL shell
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\OpenSSL Shell.lnk" \
+    "$INSTDIR\bin\openssl.exe" "" "$INSTDIR\bin\openssl.exe"
+  # make stunnel.pem
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\Build a Self-signed stunnel.pem.lnk" \
+    "$INSTDIR\bin\openssl.exe" \
+    'req -new -x509 -days 365 -config "$INSTDIR\config\openssl.cnf" -out "$INSTDIR\config\stunnel.pem" -keyout "$INSTDIR\config\stunnel.pem"'
+  !insertmacro SetRunAsAdmin "Build a Self-signed stunnel.pem"
+no_openssl_shortcuts:
+
+  # the fine manual
+  WriteINIStr "$SMPROGRAMS\${SHORTCUTS}\stunnel Manual Page.url" \
+    "InternetShortcut" "URL" "file://$INSTDIR\doc\stunnel.html"
+
+  # uninstall
+  CreateShortCut "$SMPROGRAMS\${SHORTCUTS}\Uninstall stunnel.lnk" \
+    "$INSTDIR\uninstall.exe" "/$MultiUser.InstallMode" \
+    "$INSTDIR\uninstall.exe"
+SectionEnd
+
+Section "Desktop" sectionDESKTOP
+  # create the link
+  CreateShortCut "$DESKTOP\${SHORTCUTS}.lnk" \
+    "$INSTDIR\bin\stunnel.exe" "" "$INSTDIR\bin\stunnel.exe"
+
+  # refresh the screen
+  System::Call 'Shell32::SHChangeNotify(i 0x8000000, i 0, i 0, i 0)'
+SectionEnd
+
+SectionGroupEnd
+
+/*
+Section /o "Debugging Symbols" sectionDEBUG
+  SetOutPath "$INSTDIR\bin"
+
+  # core components
+  File "${STUNNEL_BIN_DIR}\stunnel.pdb"
+  !if ${ARCH} == win32
+  File "${OPENSSL_BIN_DIR}\libeay32.pdb"
+  File "${OPENSSL_BIN_DIR}\ssleay32.pdb"
+  File "${ZLIB_DIR}\zlib1.pdb"
+  !else
+  File "${OPENSSL_BIN_DIR}\libcrypto-1_1-x64.pdb"
+  File "${OPENSSL_BIN_DIR}\libssl-1_1-x64.pdb"
+  !endif
+
+  # optional tstunnel.exe
+  SectionGetFlags ${sectionTSTUNNEL} $0
+  IntOp $0 $0 & ${SF_SELECTED}
+  IntCmp $0 0 no_tstunnel_pdb
+  File "${STUNNEL_BIN_DIR}\tstunnel.pdb"
+no_tstunnel_pdb:
+
+  # optional openssl.exe
+  SectionGetFlags ${sectionOPENSSL} $0
+  IntOp $0 $0 & ${SF_SELECTED}
+  IntCmp $0 0 no_openssl_pdb
+  File "${OPENSSL_BIN_DIR}\openssl.pdb"
+no_openssl_pdb:
+
+  # engines
+  SetOutPath "$INSTDIR\engines"
+  File "${OPENSSL_ENGINES_DIR}\capi.pdb"
+  File "${OPENSSL_ENGINES_DIR}\padlock.pdb"
+  File "${OPENSSL_ENGINES_DIR}\pkcs11.pdb"
+  SetOutPath "$INSTDIR"
+SectionEnd
+*/
+
+Section
+  !insertmacro RestartStunnel
+SectionEnd
+
+Section "Uninstall"
+  !insertmacro TerminateStunnel
+  !insertmacro CleanupStunnelFiles
+
+  # remove the stunnel directory
+  Delete "$INSTDIR\config\stunnel.pem"
+  Delete "$INSTDIR\config\stunnel.conf"
+  RMDir "$INSTDIR\config"
+  Delete "$INSTDIR\uninstall.exe"
+  RMDir "$INSTDIR"
+
+  # remove firewall rules
+  SimpleFC::RemoveApplication "$INSTDIR\bin\stunnel.exe"
+  !insertmacro DetailError "SimpleFC::RemoveApplication failed for stunnel.exe"
+  SimpleFC::RemoveApplication "$INSTDIR\bin\tstunnel.exe"
+  !insertmacro DetailError "SimpleFC::RemoveApplication failed for tstunnel.exe"
+
+  # remove the installer and uninstaller registry entires
+  DeleteRegKey SHCTX "${REGKEY_INSTALL}"
+  DeleteRegKey SHCTX "${REGKEY_UNINST}"
+SectionEnd
+
+LangString DESC_sectionCORE ${LANG_ENGLISH} \
+  "Installs the stunnel executable and the required libraries.$\r$\nThis component also creates a sample stunnel.conf if no such file exists."
+LangString DESC_sectionOPENSSL ${LANG_ENGLISH} \
+  "Installs openssl.exe, the OpenSSL command-line tool.$\r$\nThis component also builds a self-signed stunnel.pem file if no such file exists."
+LangString DESC_sectionTSTUNNEL ${LANG_ENGLISH} \
+  "Installs tstunnel.exe, the command-line version of stunnel.$\r$\ntstunnel.exe is often used for scripting."
+LangString DESC_sectionMENU ${LANG_ENGLISH} \
+  "Installs the Start Menu shortcuts for managing stunnel."
+LangString DESC_sectionDESKTOP ${LANG_ENGLISH} \
+  "Installs the Desktop shortcut for stunnel."
+/*
+LangString DESC_sectionDEBUG ${LANG_ENGLISH} \
+  "Installs the .PDB (program database) files for the executables and libraries."
+*/
+LangString DESC_groupTOOLS ${LANG_ENGLISH} \
+  "Installs optional (but useful) tools."
+LangString DESC_groupSHORTCUTS ${LANG_ENGLISH} \
+  "Installs menu and desktop shortcuts."
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+    !insertmacro MUI_DESCRIPTION_TEXT ${sectionCORE} $(DESC_sectionCORE)
+    !insertmacro MUI_DESCRIPTION_TEXT ${sectionOPENSSL} $(DESC_sectionOPENSSL)
+    !insertmacro MUI_DESCRIPTION_TEXT ${sectionTSTUNNEL} $(DESC_sectionTSTUNNEL)
+    !insertmacro MUI_DESCRIPTION_TEXT ${sectionMENU} $(DESC_sectionMENU)
+    !insertmacro MUI_DESCRIPTION_TEXT ${sectionDESKTOP} $(DESC_sectionDESKTOP)
+/*
+    !insertmacro MUI_DESCRIPTION_TEXT ${sectionDEBUG} $(DESC_sectionDEBUG)
+*/
+    !insertmacro MUI_DESCRIPTION_TEXT ${groupTOOLS} $(DESC_groupTOOLS)
+    !insertmacro MUI_DESCRIPTION_TEXT ${groupSHORTCUTS} $(DESC_groupSHORTCUTS)
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
+# end of stunnel.nsi
