@@ -14,4 +14,4 @@ The official stunnel.org site no longer provides 32-bit binaries for Windows. Th
 
 <b>Know Issues:</b>
 
- You must be aware that some antivirus products flag my stunnel installers as malicious or potentially unwanted applications (PUA). As December 12, 3 out of 70 antivrus engines registered in virustotal.com erroneously flag the latest installer. Of course, I did not plant any malware on them. 
+ You must be aware that some antivirus products flag my stunnel installers as malicious or potentially unwanted applications (PUA). As December 12, 2020 we find that 3 out of 70 antivirus engines registered in virustotal.com are flagging the latest installer as dangerous. Of course, I did not plant any malware on them. 
