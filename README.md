@@ -10,8 +10,8 @@ The official stunnel.org site no longer provides 32-bit binaries for Windows. Th
  
  <b>How does this differs form the official installer?</b>
  
- The software should be mostly compatible with the official binaries. The binaries for Stunnel and OpenSSL were generated with GCC 7.3 or later for i686 architecture. Small tweaks were made to the NSIS install script to accomodate DLL file name changes.
+ The software should be mostly compatible with the official binaries. The binaries for Stunnel and OpenSSL were generated with GCC 8.3.0 or later for i686 architecture. Small tweaks were made to the NSIS install script to accomodate DLL file name changes.
 
 <b>Know Issues:</b>
 
- You must be aware that some antivirus products flag my stunnel installers as malicious or potentially unwanted applications (PUA). As December 12, 2020 we find that 3 out of 70 antivirus engines registered in virustotal.com are flagging the latest installer as dangerous. Of course, I did not plant any malware on them. 
+ You must be aware that some antivirus products flag my stunnel installers as malicious or potentially unwanted applications (PUA). As of March 31, 2021 we find that 4 out of 67 antivirus engines registered in virustotal.com are flagging the latest installer as dangerous or a potentially unwanted application. Of course, I did not plant any malware on them. 
