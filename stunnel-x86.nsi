@@ -1,10 +1,10 @@
-# NSIS stunnel installer by Michal Trojnara 1998-2018
+# NSIS stunnel installer by Michal Trojnara 1998-2021
 
 !define /ifndef VERSION testing
 !define /ifndef ARCH win32
 
-!define STUNNEL_VERSION "5.58"
-!define OPENSSL_VERSION "1.1.1j"
+!define STUNNEL_VERSION "5.61"
+!define OPENSSL_VERSION "1.1.1m"
 
 !define REGKEY_INSTALL "Software\NSIS_stunnel"
 !define REGKEY_UNINST \
@@ -13,7 +13,7 @@
 
 SetCompressor /SOLID LZMA
 Name "stunnel ${VERSION}"
-OutFile "stunnel-${VERSION}-${ARCH}-${STUNNEL_VERSION}-ossl-${OPENSSL_VERSION}-installer.exe"
+OutFile "stunnel-${ARCH}-${STUNNEL_VERSION}-openssl-${OPENSSL_VERSION}-installer.exe"
 BrandingText "Author: Michal Trojnara\n,This build done by J.A. Diaz"
 
 # MultiUser
