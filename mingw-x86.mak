@@ -24,8 +24,8 @@
 # (You did already compile openssl, didn't you???)
 #SSLDIR=../../openssl-0.9.8zh
 #SSLDIR=../../openssl-1.0.0t
-#SSLDIR=../../openssl-1.0.2s
-SSLDIR=../../openssl-1.1.1j
+#SSLDIR=../../openssl-1.0.2u
+SSLDIR=../../openssl-1.1.1w
 
 # For 0.9.8 mingw compiled openssl
 #SSLINC=$(SSLDIR)/outinc
@@ -79,13 +79,13 @@ OBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
 	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
 	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
 	$(OBJ)/ui_win_gui.o $(OBJ)/resources.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o
+	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o
 
 TOBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
 	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
 	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
 	$(OBJ)/ui_win_cli.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o
+	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o
 
 CC=gcc
 RC=windres
@@ -98,7 +98,7 @@ DEFINES=-D_WIN32_WINNT=0x0501
 
 # some preprocessing debug : $(info  DEFINES is $(DEFINES) )
 
-CFLAGS=-g -O3 -march=i686 -Wall -Wextra -Warray-bounds -Wstringop-overflow -fanalyzer -flto $(DEFINES) -I$(SSLINC)
+CFLAGS=-g -std=c99 -O3 -march=i686 -Wall -Wextra -Warray-bounds -Wstringop-overflow -fno-use-linker-plugin $(DEFINES) -I$(SSLINC)
 
 # RFLAGS, note of pdelaage: windres accepts -fo for compatibility with ms tools
 # default options : -J rc -O coff, input rc file, output coff file.
@@ -106,7 +106,7 @@ CFLAGS=-g -O3 -march=i686 -Wall -Wextra -Warray-bounds -Wstringop-overflow -fana
 RFLAGS=-v --use-temp-file $(DEFINES)
 # following RFLAGS2 useful if one day use-temp-file does not exist anymore 
 RFLAGS2=-v $(DEFINES)
-LDFLAGS=-s
+LDFLAGS=-s -fno-use-linker-plugin -lmsvcrt
 
 #LIBS=$(SSLLIBS) -lws2_32 -lpsapi -lgdi32 -lcrypt32 -lkernel32
 #TLIBS=$(SSLLIBS) -lws2_32 -lpsapi -lcrypt32 -lkernel32
