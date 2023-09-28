@@ -10,7 +10,7 @@ The official stunnel.org site no longer provides 32-bit binaries for Windows. Th
  
  <b>How does this differs form the official installer?</b>
  
- The software should be mostly compatible with the official binaries. The binaries for Stunnel and OpenSSL were generated with GCC 8.3.0 or later for i686 architecture. Small tweaks were made to the NSIS install script to accomodate DLL file name changes. Also, I stick to a supported LTS release of OpenSSL (currently 1.1.1).
+ The software should be mostly compatible with the official binaries. The binaries for Stunnel and OpenSSL were generated with GCC 8.3.0 or later for i686 architecture. Small tweaks were made to the NSIS install script to accomodate DLL file name changes. Also, I stick to a supported LTS release of OpenSSL (Currrently 3.0.x branch). Previously, I was using the previous LTS branch (1.1.1) but it entered end of free support in September 2023.
 
 <b>Know Issues:</b>
 
