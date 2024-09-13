@@ -14,7 +14,7 @@ The official stunnel.org site no longer provides 32-bit binaries for Windows. Th
 
 <b>Which Operating System does it work on?</b>
 
-Version 5.72 with OpenSSL 3.0.14 or later should work on Windows XP/2003 and later. This can be useful to help secure services in legacy systems that can be easily upgraded.
+Version 5.72 with OpenSSL 3.0.14 or later should work on Windows XP/2003 and later. This can be useful to help secure services in legacy systems that cannot be easily upgraded.
 
 <b>Know Issues:</b>
 
