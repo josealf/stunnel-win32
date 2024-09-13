@@ -1,4 +1,4 @@
-# Simple Makefile.w32 for stunnel.exe by Michal Trojnara 1998-2019
+# Simple Makefile.w32 for stunnel.exe by Michal Trojnara 1998-2024
 #
 # Modified by Brian Hatch  (bri@stunnel.org)
 # 20101030 pdelaage:
@@ -24,8 +24,7 @@
 # (You did already compile openssl, didn't you???)
 #SSLDIR=../../openssl-0.9.8zh
 #SSLDIR=../../openssl-1.0.0t
-#SSLDIR=../../openssl-1.0.1q
-SSLDIR=../../openssl-1.1.1b
+SSLDIR=../../openssl-1.0.1q
 
 # For 0.9.8 mingw compiled openssl
 #SSLINC=$(SSLDIR)/outinc
@@ -74,13 +73,13 @@ OBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
 	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
 	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
 	$(OBJ)/ui_win_gui.o $(OBJ)/resources.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o
+	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/ocsp.o $(OBJ)/cron.o
 
 TOBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
 	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
 	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
 	$(OBJ)/ui_win_cli.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o
+	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/ocsp.o $(OBJ)/cron.o
 
 CC=gcc
 RC=windres
