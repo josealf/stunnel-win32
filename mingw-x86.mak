@@ -25,7 +25,8 @@
 #SSLDIR=../../openssl-0.9.8zh
 #SSLDIR=../../openssl-1.0.0t
 #SSLDIR=../../openssl-1.0.2u
-SSLDIR=../../openssl-1.1.1w
+#SSLDIR=../../openssl-1.1.1w
+SSLDIR=../../openssl-3.0.15
 
 # For 0.9.8 mingw compiled openssl
 #SSLINC=$(SSLDIR)/outinc
@@ -36,9 +37,12 @@ SSLDIR=../../openssl-1.1.1w
 #SSLLIBS=-L$(SSLDIR) -lcrypto.dll -lssl.dll
 
 # for 1.1.1 mingw (msys2) compiled
-SSLINC=$(SSLDIR)/include
-SSLLIBS=-L$(SSLDIR) -lcrypto-1_1 -lssl-1_1
+#SSLINC=$(SSLDIR)/include
+#SSLLIBS=-L$(SSLDIR) -lcrypto-1_1 -lssl-1_1
 
+# for 3.0.x mingw (msys2) compiled
+SSLINC=$(SSLDIR)/include
+SSLLIBS=-L$(SSLDIR) -lcrypto-3 -lssl-3
 
 # For MSVC compiled openssl
 #SSLINC=$(SSLDIR)/inc32
@@ -79,13 +83,15 @@ OBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
 	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
 	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
 	$(OBJ)/ui_win_gui.o $(OBJ)/resources.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o
+	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o $(OBJ)/mkgmtime_alt.o
 
 TOBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
 	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
 	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
 	$(OBJ)/ui_win_cli.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o
+	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o $(OBJ)/mkgmtime_alt.o
+
+	
 
 CC=gcc
 RC=windres
@@ -94,11 +100,11 @@ RC=windres
 # "use a temp file instead of popen" option between cpp and windres!
 RCP=gcc -E -xc-header -DRC_INVOKED
 
-DEFINES=-D_WIN32_WINNT=0x0501
+DEFINES=-D_WIN32_WINNT=0x0501 -D__MINGW32__
 
 # some preprocessing debug : $(info  DEFINES is $(DEFINES) )
 
-CFLAGS=-g -std=c99 -O3 -march=i686 -Wall -Wextra -Warray-bounds -Wstringop-overflow -fno-use-linker-plugin $(DEFINES) -I$(SSLINC)
+CFLAGS=-g -std=c99 -O3 -march=i686 -Wall -Wextra -fomit-frame-pointer -Warray-bounds -Wstringop-overflow -fno-use-linker-plugin $(DEFINES) -I$(SSLINC)
 
 # RFLAGS, note of pdelaage: windres accepts -fo for compatibility with ms tools
 # default options : -J rc -O coff, input rc file, output coff file.
