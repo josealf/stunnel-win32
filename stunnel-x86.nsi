@@ -3,9 +3,8 @@
 !define /ifndef VERSION testing
 !define /ifndef ARCH win32
 
-!define STUNNEL_VERSION "5.73"
-!define OPENSSL_VERSION "3.0.15"
-#!define OPENSSL_VERSION "1.1.1w"
+!define STUNNEL_VERSION "5.76"
+!define OPENSSL_VERSION "3.0.18"
 
 !define REGKEY_INSTALL "Software\NSIS_stunnel"
 !define REGKEY_UNINST \
