@@ -26,7 +26,7 @@
 #SSLDIR=../../openssl-1.0.0t
 #SSLDIR=../../openssl-1.0.2u
 #SSLDIR=../../openssl-1.1.1w
-SSLDIR=../../openssl-3.0.15
+SSLDIR=../../openssl-3.0.20
 
 # For 0.9.8 mingw compiled openssl
 #SSLINC=$(SSLDIR)/outinc
@@ -83,13 +83,13 @@ OBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
 	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
 	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
 	$(OBJ)/ui_win_gui.o $(OBJ)/resources.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o $(OBJ)/mkgmtime_alt.o
+	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o 
 
 TOBJS=$(OBJ)/stunnel.o $(OBJ)/ssl.o $(OBJ)/ctx.o $(OBJ)/verify.o \
 	$(OBJ)/file.o $(OBJ)/client.o $(OBJ)/protocol.o $(OBJ)/sthreads.o \
 	$(OBJ)/log.o $(OBJ)/options.o $(OBJ)/network.o $(OBJ)/resolver.o \
 	$(OBJ)/ui_win_cli.o $(OBJ)/str.o $(OBJ)/tls.o \
-	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o $(OBJ)/mkgmtime_alt.o
+	$(OBJ)/fd.o $(OBJ)/dhparam.o $(OBJ)/cron.o $(OBJ)/ocsp.o
 
 	
 
