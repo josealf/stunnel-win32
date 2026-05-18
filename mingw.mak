@@ -1,4 +1,4 @@
-# Simple Makefile.w32 for stunnel.exe by Michal Trojnara 1998-2024
+# Simple Makefile.w32 for stunnel.exe by Michal Trojnara 1998-2026
 #
 # Modified by Brian Hatch  (bri@stunnel.org)
 # 20101030 pdelaage:
@@ -24,7 +24,8 @@
 # (You did already compile openssl, didn't you???)
 #SSLDIR=../../openssl-0.9.8zh
 #SSLDIR=../../openssl-1.0.0t
-SSLDIR=../../openssl-1.0.1q
+#SSLDIR=../../openssl-1.0.1q
+SSLDIR=../../openssl-3.0.20
 
 # For 0.9.8 mingw compiled openssl
 #SSLINC=$(SSLDIR)/outinc
@@ -62,7 +63,7 @@ DELDIR=rm -rf
 COPYFILES=cp -f
 endif
 
-TARGETCPU=win32
+TARGETCPU=MGW32
 SRC=../src
 OBJROOT=../obj
 OBJ=$(OBJROOT)/$(TARGETCPU)
