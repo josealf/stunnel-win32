@@ -3,6 +3,6 @@ Experimental Build Deviations from Official Stunnel:
 - Implements Log Coloring according to the LOG line debug level. This requires RICHEDIT control to be available, which should be in the default supported OS installations.
 - When closed or terminated, Stunnel saves window location and sizes to the current user regsitry and restores them when started again.
 - Save peer certificate function now allows user to select the save location and to open the folder where the file was saved in Windows Explorer.
-- Save Log function now defaults the filename to stunnel-YYYYMMDD-HHMMSS.log, lets you choose the save location foldfer and optionally open it in Windows Explorer. A keyboard accelerator (Ctrl+S) has been also added.
+- Save Log function now defaults the filename to stunnel-YYYYMMDD-HHMMSS.log, lets you choose the save location folder and optionally open it in Windows Explorer. A keyboard accelerator (Ctrl+S) has been also added.
 - Added <b>Copy to Clipbaord</b> and <b>Select All (Ctrl+C)</b> to the Log Window
 - Add Ctrl+R keybaord accelerator to Reload Configuration
