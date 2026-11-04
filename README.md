@@ -12,7 +12,7 @@ The official stunnel.org site no longer provides 32-bit binaries for Windows. Th
  
  The software should be mostly compatible with the official binaries. The binaries for Stunnel and OpenSSL were generated with GCC 8.3.0 or later for i686 architecture. Small tweaks were made to the NSIS install script to accommodate DLL file name changes. Also, I stick to a supported LTS release of OpenSSL. Starting with Stunnel 5.80 I am using 3.5.x branch as 3.0.x branch went end of free support in September 7th 2026. Other historical versions used older LTS branches (1.1.1 and 1.0.2).
 
- Once in a while, new experimental builds will be published. The first is one is 5.78.3. I named the installer file stunnel-win32-5.78.<b>4</b>.testing-openssl-3.5.9-installer.exe. This special build includes UI and other minor enhancements that are not in the official Stunnel software. See [the experimental notes here](https://github.com/josealf/stunnel-win32/blob/master/README-EXPERIMENTAL.md)
+ Once in a while, new experimental builds will be published. The lastest build is 5.78.4 compiled against OpenSSL 3.5.9 (LTS). I named the installer file stunnel-win32-5.78.<b>4</b>.testing-openssl-3.5.9-installer.exe. This special build includes UI and other minor enhancements that are not in the official Stunnel software. See [the experimental notes here](https://github.com/josealf/stunnel-win32/blob/master/README-EXPERIMENTAL.md)
 
 <b>Which Operating System does it work on?</b>
 
